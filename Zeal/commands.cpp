@@ -433,6 +433,44 @@ ChatCommands::ChatCommands(ZealService* zeal)
 				}
 			return false;
 		});
+		Add("/gsort", {}, "Sorts the group member window alpha (w/o args), or swaps members (w/ args) ",
+			[this, zeal](std::vector<std::string>& args) {
+
+				Zeal::EqStructures::Group group;
+				
+				for (int i = 0; i < 5; ++i) {
+					Zeal::EqStructures::Entity* member = group.members[i];
+
+					if (member) {
+						Zeal::EqGame::print_chat("%s", member->Name);
+					}
+				}
+
+				group.sortByName();
+				
+				for (int i = 0; i < 5; ++i) {
+					Zeal::EqStructures::Entity* member = group.members[i];
+
+					if (member) {
+						Zeal::EqGame::print_chat("%s", member->Name);
+					}
+				}
+				//if (args.size())
+				//{
+				//	Zeal::EqStructures::Entity* t = Zeal::EqGame::get_target();
+				//	if (!t || t->Type != 0)
+				//	{
+				//		Zeal::EqGame::print_chat("That is not a valid target to inspect!");
+				//		return true;
+				//	}
+				//	else
+				//	{
+				//		Zeal::EqGame::do_inspect(t);
+				//		return true;
+				//	}
+				//}
+				return true;
+			});
 
 	Add("/help", { "/hel" }, "Adds zeal to the help list.",
 		[this](std::vector<std::string>& args) {

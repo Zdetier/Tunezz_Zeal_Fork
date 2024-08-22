@@ -813,5 +813,60 @@ namespace Zeal
 			const char* localized_name;
 			int fn;
 		};
+
+		struct Group {
+			Entity* members[5];  // Array of 5 pointers to Entity
+
+			Group() {
+				// Safely load pointers to members, handling potential nulls
+				for (int i = 0; i < 5; ++i) {
+					Entity** ptr = (Entity**)(0x7913F8 + (i * 0x4));
+					members[i] = *ptr != nullptr ? *ptr : nullptr;
+				}
+			}
+
+			void sortByName() {
+				std::sort(members, members + 5, [](Entity* a, Entity* b) -> bool {
+					if (a == nullptr) return false; // Ensure nulls go at the end
+					if (b == nullptr) return true;  // Ensure nulls go at the end
+					return a->Name < b->Name;
+					});
+
+				// Write the sorted pointers back to the original memory addresses
+				for (int i = 0; i < 5; ++i) {
+					Entity** ptr = (Entity**)(0x7913F8 + (i * 0x4));
+					*ptr = members[i];
+				}
+
+				// Update the memory addresses holding the group names
+				char* name_addresses[5] = {
+					(char*)0x007912b5,
+					(char*)0x007912F5,
+					(char*)0x00791335,
+					(char*)0x00791375,
+					(char*)0x007913B5
+				};
+
+				for (int i = 0; i < 5; ++i) {
+					if (members[i] != nullptr) {
+						const std::string& name = members[i]->Name;
+						for (size_t j = 0; j < 40; ++j) {  // Limit to 40 characters
+							if (j < name.size()) {
+								name_addresses[i][j] = name[j];
+							}
+							else {
+								name_addresses[i][j] = '\0';  // Fill the rest with null characters
+							}
+						}
+					}
+					else {
+						// Fill the memory with null characters for empty names
+						for (size_t j = 0; j < 40; ++j) {
+							name_addresses[i][j] = '\0';
+						}
+					}
+				}
+			}
+		};
 	}
 }
