@@ -111,6 +111,7 @@ namespace Zeal
 		EqStructures::Everquest* get_eq();
 		bool check_slot_empty(int param1);
 		bool check_fitInBag(int slotID);
+		bool can_equip_item_at_slot(Zeal::EqStructures::EQITEMINFO* item, int slotID);
 		int get_gamestate();
 		void SetMusicSelection(int number, bool enabled);
 		bool is_new_ui();
