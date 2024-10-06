@@ -44,6 +44,8 @@ namespace Zeal
 			//static int fn_main_loop = 0x5473c3;
 			/*inline int fn_loadoptions = 0x536CE0;*/
 			static int fn_KeyboardPageHandleKeyboardMsg = 0x42c4fb;
+			static mem::function<void __cdecl(int, int, int, int)> equip = 0x422b1c;
+
 
 			static mem::function<void __fastcall(int t, int unused, const char* data, short color, bool un)> print_chat = 0x537f99;
 			//static mem::function<void __stdcall(const char* data)> log = 0x5240dc;
@@ -96,6 +98,7 @@ namespace Zeal
 		void DoPercentConvert(std::string& str);
 		void move_item(int a1, int slot, int a2, int a3);
 		bool can_inventory_item(Zeal::EqStructures::EQITEMINFO* item);
+		bool CallEquipItem(int param1, int param2, int param3, int param4);
 		bool can_equip_item(Zeal::EqStructures::EQITEMINFO* item);
 		void print_debug(const char* format, ...);
 		UINT get_eq_time();

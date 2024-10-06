@@ -216,6 +216,16 @@ void Melody::tick()
 
     // Cast the next song in the melody
     current_index++;
+    if (current_index >= songs.size())
+    {
+        bool success = (use_item_timeout >= current_timestamp) && Zeal::EqGame::use_item(12);
+        use_item_index = -1;
+        if (success) {
+            casting_visible_timestamp = current_timestamp; // Pushes back the start of next song by MELODY_SONG_INTERVAL ms.
+            return;
+        }
+    }
+
     if (current_index >= songs.size() || current_index < 0)
         current_index = 0;
 

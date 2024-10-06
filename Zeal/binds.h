@@ -32,5 +32,6 @@ public:
 	void replace_cmd(int cmd, std::function<bool(int state)> callback);
 	void main_loop();
 	void on_zone();
+	void castSong(int index);
 	bool execute_cmd(UINT opcode, bool state);
 };

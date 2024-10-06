@@ -303,6 +303,65 @@ void Binds::add_binds()
 		if (key_down && !Zeal::EqGame::EqGameInternal::UI_ChatInputCheck())
 			ZealService::get_instance()->nameplate->con_colors_set_enabled(!ZealService::get_instance()->nameplate->con_colors_is_enabled());
 		});
+	add_bind(237, "Song 1", "SongOne", key_category::Spell, [this](int key_down) {
+		if (key_down)
+		{
+			//Zeal::EqGame::print_chat(USERCOLOR_LOOT, "Cast 1");
+			castSong(0);
+		}
+		});
+
+	add_bind(238, "Song 2", "SongTwo", key_category::Spell, [this](int key_down) {
+		if (key_down)
+		{
+			//Zeal::EqGame::print_chat(USERCOLOR_LOOT, "Cast 2");
+			castSong(1);
+		}
+		});
+	add_bind(239, "Song 3", "SongThree", key_category::Spell, [this](int key_down) {
+		if (key_down)
+		{
+			//Zeal::EqGame::print_chat(USERCOLOR_LOOT, "Cast 3");
+			castSong(2);
+
+		}
+		});
+	add_bind(240, "Song 4", "SongFour", key_category::Spell, [this](int key_down) {
+		if (key_down)
+		{
+			//Zeal::EqGame::print_chat(USERCOLOR_LOOT, "Cast 4");
+			castSong(3);
+		}
+		});
+	add_bind(241, "Song 5", "SongFive", key_category::Spell, [this](int key_down) {
+		if (key_down)
+		{
+			//Zeal::EqGame::print_chat(USERCOLOR_LOOT, "Cast 5");
+			castSong(4);
+		}
+		});
+	add_bind(242, "Song 6", "SongSix", key_category::Spell, [this](int key_down) {
+		if (key_down)
+		{
+			//Zeal::EqGame::print_chat(USERCOLOR_LOOT, "Cast 6");
+			castSong(5);
+		}
+		});
+	add_bind(243, "Song 7", "SongSeven", key_category::Spell, [this](int key_down) {
+		if (key_down)
+		{
+			//Zeal::EqGame::print_chat(USERCOLOR_LOOT, "Cast 7");
+			castSong(6);
+
+		}
+		});
+	add_bind(244, "Song 8", "SongEight", key_category::Spell, [this](int key_down) {
+		if (key_down)
+		{
+			//Zeal::EqGame::print_chat(USERCOLOR_LOOT, "Cast 8");
+			castSong(7);
+		}
+		});
 	add_bind(255, "Auto Inventory", "AutoInventory", key_category::Commands | key_category::Macros, [](int key_down)
 	{
 		if (key_down)
@@ -355,6 +414,30 @@ void Binds::on_zone()
 {
 	last_targets.first = 0;
 	last_targets.second = 0;
+}
+
+void Binds::castSong(int index) {
+	Zeal::EqStructures::Entity* self = Zeal::EqGame::get_self();
+	Zeal::EqStructures::EQCHARINFO* char_info = Zeal::EqGame::get_char_info();
+	std::shared_ptr<Melody> melody = ZealService::get_instance()->melody; // get the shared_ptr
+
+	melody->end();
+	melody->stop_current_cast();  // Abort bard song if active.
+
+	if (char_info->MemorizedSpell[index] == -1)
+		return;  // Simply skip empty gem slots (unexpected to occur)
+
+	// Handle a common issue of no target gracefully (notify once and skip to next song w/out retry failures).
+	if (Zeal::EqGame::get_spell_mgr() &&
+		Zeal::EqGame::get_spell_mgr()->Spells[char_info->MemorizedSpell[index]]->TargetType == 5 &&
+		!Zeal::EqGame::get_target())
+	{
+		Zeal::EqGame::print_chat(USERCOLOR_SPELL_FAILURE, "You must first select a target for spell %i", index + 1);
+		return;
+	}
+
+	char_info->cast(index, char_info->MemorizedSpell[index], 0, 0);
+
 }
 
 

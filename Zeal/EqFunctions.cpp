@@ -6,6 +6,175 @@ namespace Zeal
 {
 	namespace EqGame
 	{
+		// Define a function pointer to the EquipItem function
+		typedef bool(__stdcall* EquipItemFunc)(int param1, int param2, int param3, int param4);
+		EquipItemFunc equipItem = reinterpret_cast<EquipItemFunc>(0x00422b1c); // Address of EquipItem function
+
+		// Test Function to equip item into bag from curosr
+		bool CallEquipItem(int param1, int param2, int param3, int param4) {
+			Zeal::EqStructures::EQCHARINFO* c = Zeal::EqGame::get_char_info();
+
+			//check source
+				// if source = cursor check cursor is holding something
+			if (param1 == 0) {
+				if (!c->CursorItem) {
+					print_chat("cursor is empty");
+					return false;
+				}
+			}
+			else {
+				// if source != cursor check slot is not empty
+				if (check_slot_empty(param1)) {
+					print_chat("Can't move to cursor when holding something");
+					return false;
+				}
+			}
+
+			//check destination
+			if (param2 == 0) {
+				if (c->CursorItem) {
+					print_chat("Can't move to cursor when holding something");
+					return false;
+				}
+			}
+			else {
+				if (param2 < 22) {
+					//Inventory 0-21)
+					if (!can_equip_item_at_slot(c->CursorItem, param2)) {
+						print_chat("You cannot equip that");
+						return false;
+					}
+				}
+				else if (param2 >= 22 && param2 <= 29) {
+					// Inventory (22-29)
+					if (!check_slot_empty(param2)) {
+						print_chat("That Inventory Slot is not empty");
+						return false;
+					}
+				}
+				else {
+					// Bag Slot (250-330)
+					if (!check_slot_empty(param2)) {
+						print_chat("That Bag Slot is not empty");
+						return false;
+					}
+					if (!check_fitInBag(param2)) {
+						print_chat("That Item does not fit into that bag");
+						return false;
+					}
+				}
+			}
+
+			return equipItem(param1, param2, param3, param4);
+		}
+
+		bool can_equip_item_at_slot(Zeal::EqStructures::EQITEMINFO* item, int slotID)
+		{
+			Zeal::EqStructures::EQCHARINFO* c = Zeal::EqGame::get_char_info();
+			if (!item || !c)
+				return false;
+
+			using FunctionType2 = bool(__thiscall*)(Zeal::EqStructures::EQCHARINFO* char_info, Zeal::EqStructures::EQITEMINFO* iItem);
+			using FunctionType = bool(__cdecl*)(Zeal::EqStructures::EQCHARINFO* char_info, UINT equipable_slots, UINT slot, Zeal::EqStructures::EQITEMINFO* iItem);
+			FunctionType check_loc = reinterpret_cast<FunctionType>(0x4F0DB4);
+			FunctionType2 can_use_item = reinterpret_cast<FunctionType2>(0x4BB8E8);
+			if (!can_use_item(c, item))
+				return false;
+
+			if (check_loc(c, item->EquipableSlots, slotID, item) && !c->InventoryItem[slotID - 1])
+			{
+				//print_chat("equipable? slot: %i  %s   %i", slotID, equipSlotToString(slotID).c_str(), c->InventoryItem[slotID]);
+				return true;
+			}
+
+
+			return false;
+		}
+
+		bool check_fitInBag(int slotID) {
+			// Get the character's information
+			Zeal::EqStructures::EQCHARINFO* c = Zeal::EqGame::get_char_info();
+
+
+			// Determine the specific slot within the bag
+			int slotInBag = slotID % 10;
+			// Calculate the base slot of the bag
+			int slotBaseBag = ((slotID - slotInBag) / 10) - 3;
+
+			// Get the inventory item (bag) at the calculated base bag slot
+			Zeal::EqStructures::_EQITEMINFO* Bag_Item = c->InventoryPackItem[slotBaseBag - 22];
+			// Get the item within the bag at the specified slot
+
+			Zeal::EqStructures::EQITEMINFO* cursor_Item = c->CursorItem;
+
+			if (Bag_Item && cursor_Item && Bag_Item->Type == 1 && Bag_Item->Container.SizeCapacity >= cursor_Item->Size && cursor_Item->Type != 1)
+			{
+				return true;
+			}
+			return false;
+		}
+
+		bool check_slot_empty(int slotID) {
+
+			// Get the character's information
+			Zeal::EqStructures::EQCHARINFO* c = Zeal::EqGame::get_char_info();
+
+			// Check if the slotID is greater than 29, indicating it's a slot inside a bag
+			if (slotID > 29) {
+				// Determine the specific slot within the bag
+				int slotInBag = slotID % 10;
+				// Calculate the base slot of the bag
+				int slotBaseBag = ((slotID - slotInBag) / 10) - 3;
+
+				// Get the inventory item (bag) at the calculated base bag slot
+				Zeal::EqStructures::_EQITEMINFO* inventory_item = c->InventoryPackItem[slotBaseBag - 22];
+				// Get the item within the bag at the specified slot
+				Zeal::EqStructures::_EQITEMINFO* bag_item = inventory_item->Container.Item[slotInBag];
+
+				// Check if the slot within the bag is empty
+				if (!bag_item) {
+					// Slot is empty
+					//print_chat("Slot is empty: slotBaseBag %i slotInBag %i", slotBaseBag, slotInBag);
+					return true;
+				}
+				else {
+					// Slot is not empty
+					//print_chat("ERROR: Slot is not empty: slotBaseBag %i slotInBag %i itemName %s", slotBaseBag, slotInBag, bag_item->Name);
+					return false;
+				}
+			}
+			else {
+				// If slotID is 29 or less, it is not inside a bag
+
+				Zeal::EqStructures::EQITEMINFO* inventory_item = nullptr;
+
+				// Check if the slotID is in the main inventory slots (0-20)
+				if (slotID < 21) {
+					// Get the item directly from the main inventory
+					inventory_item = c->InventoryItem[slotID - 1];
+				}
+				else {
+					// If the slotID is 22-29, it represents a bag slot
+					inventory_item = c->InventoryPackItem[slotID - 22];
+				}
+
+				// Check if the inventory slot is empty
+				if (!inventory_item) {
+					// Slot is empty
+					//print_chat("Slot is empty: %i", slotID);
+					return true;
+				}
+				else {
+					// Slot is not empty
+					//print_chat("ERROR: Slot is not empty: %i %s", slotID, inventory_item->Name);
+					return false;
+				}
+			}
+
+			// Return false if none of the above conditions are met (this should never be reached)
+			return false;
+		}
+
 		DWORD GetLevelCon(Zeal::EqStructures::Entity* ent) {
 			if (!ent || !Zeal::EqGame::get_self())
 				return 0;

@@ -221,6 +221,33 @@ ChatCommands::ChatCommands(ZealService* zeal)
 			}
 			return true; //return true to stop the game from processing any further on this command, false if you want to just add features to an existing cmd
 		});
+
+	Add("/equip", { "/equip" }, "Equip",
+		[](std::vector<std::string>& args) {
+			if (args.size() < 4) {
+				// Handle error: not enough arguments
+				return false;
+			}
+
+			std::vector<int> inputs;
+			for (int i = 1; i < args.size(); i++) //start at argument 1 because 0 is the command itself
+			{
+				int currentInput = -1;
+				if (Zeal::String::tryParse(args[i], &currentInput))
+					inputs.push_back(currentInput);  //base 0
+				else
+				{
+					Zeal::EqGame::print_chat(USERCOLOR_SPELL_FAILURE, "Equip Error");
+					return true;
+				}
+			}
+
+			//// Now call the equip function with the converted arguments
+			Zeal::EqGame::CallEquipItem(inputs[0], inputs[1], inputs[2], inputs[3]);
+
+			return true; // return true to stop the game from processing any further on this command
+		});
+
 	Add("/testinventory", { }, "Test cursor item to see if it can be inventoried",
 		[](std::vector<std::string>& args) {
 
