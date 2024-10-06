@@ -109,6 +109,8 @@ namespace Zeal
 		void do_inspect(Zeal::EqStructures::Entity* player);
 		void execute_cmd(UINT cmd, bool isdown, int unk2);
 		EqStructures::Everquest* get_eq();
+		bool check_slot_empty(int param1);
+		bool check_fitInBag(int slotID);
 		int get_gamestate();
 		void SetMusicSelection(int number, bool enabled);
 		bool is_new_ui();
